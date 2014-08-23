@@ -4,5 +4,8 @@
     <string name="app_name">Pingnimei</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    
+    <!-- 信息浏览 -->
+    <string name="publish_msg">发信息</string>
 
 </resources>
