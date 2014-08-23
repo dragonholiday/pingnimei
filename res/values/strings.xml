@@ -7,5 +7,10 @@
     
     <!-- 信息浏览 -->
     <string name="publish_msg">发信息</string>
+    
+    <string name="tag_add">所在位置</string>
+    <string name="hint_photo">这一刻的想法...</string>
+    <string name="publish">发表</string>
+    <string name="select_image">选择图片</string>
 
 </resources>
