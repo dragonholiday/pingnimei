@@ -1,10 +1,15 @@
 package com.example.pingnimei;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,6 +18,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
+import cn.bmob.v3.datatype.BmobFile;
+import cn.bmob.v3.datatype.BmobGeoPoint;
+import cn.bmob.v3.listener.SaveListener;
 
 public class PingPublishActivity extends Activity {
 
@@ -23,6 +32,9 @@ public class PingPublishActivity extends Activity {
 	private String mPhotoPath;
 
 	private ProgressDialog progressDialog;
+
+	private double latitude = 0.0;
+	private double longitude = 0.0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +50,18 @@ public class PingPublishActivity extends Activity {
 		mIvPhoto.setImageBitmap(bitmap);
 
 		mIvPhoto.setOnClickListener(photoClickListener);
+
+		initLocation();
+	}
+
+	private void initLocation() {
+		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+		Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		latitude = location.getLatitude();
+		longitude = location.getLongitude();
+
+		Toast.makeText(this, latitude + " " + longitude, Toast.LENGTH_LONG).show();
 	}
 
 	private OnClickListener photoClickListener = new OnClickListener() {
@@ -65,12 +89,40 @@ public class PingPublishActivity extends Activity {
 				progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				progressDialog.setMessage("发布中...");
 
+				progressDialog.setCanceledOnTouchOutside(false);
 				progressDialog.show();
+
+				publish();
 			}
 			default: {
 				break;
 			}
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void publish() {
+		PingMessage message = new PingMessage();
+
+		message.setImage(new BmobFile(new File(mPhotoPath)));
+		message.setImageDesribe(mEtDes.getText().toString());
+		message.setLocationDescribe(mEtTag.getText().toString());
+		message.setLocation(new BmobGeoPoint(longitude, latitude));
+
+		NetworkManager.getInstance(this).publishPing(new SaveListener() {
+
+			@Override
+			public void onSuccess() {
+				progressDialog.cancel();
+				PingPublishActivity.this.finish();
+				Toast.makeText(PingPublishActivity.this, "发布成功^_^", Toast.LENGTH_LONG).show();
+			}
+
+			@Override
+			public void onFailure(int arg0, String arg1) {
+				progressDialog.cancel();
+				Toast.makeText(PingPublishActivity.this, "发布失败~_~", Toast.LENGTH_LONG).show();
+			}
+		}, message);
 	}
 }
