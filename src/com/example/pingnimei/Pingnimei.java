@@ -3,6 +3,7 @@ package com.example.pingnimei;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -32,9 +33,23 @@ public class Pingnimei extends Activity {
 		setContentView(R.layout.pingnimei);
 
 		ViewPager pager = (ViewPager) findViewById(R.id.content_pager);
-		pager.setAdapter(new ContentPagerAdapter());
+		final ContentPagerAdapter adapter = new ContentPagerAdapter();
+		pager.setAdapter(adapter);
+		
+		NetworkManager.getInstance().queryAllPings(new NetworkManager.PingsHandler() {
+
+			@Override
+			public void onSuccess(List<PingMessage> pings) {
+				adapter.setPings(pings);
+			}
+			
+			@Override
+			public void onError(int code, String msg) {
+				
+			}
+		});
 	}
-	
+
 	protected void getPhotoFromCamera() {
 		Intent getImageByCamera = new Intent("android.media.action.IMAGE_CAPTURE");
 		mPhotoPath = FileTool.getImagePath() + Calendar.getInstance().getTimeInMillis()
