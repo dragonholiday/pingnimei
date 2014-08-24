@@ -58,10 +58,11 @@ public class PingPublishActivity extends Activity {
 		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		latitude = location.getLatitude();
-		longitude = location.getLongitude();
 
-		Toast.makeText(this, latitude + " " + longitude, Toast.LENGTH_LONG).show();
+		if (location != null) {
+			latitude = location.getLatitude();
+			longitude = location.getLongitude();
+		}
 	}
 
 	private OnClickListener photoClickListener = new OnClickListener() {
