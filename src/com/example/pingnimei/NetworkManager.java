@@ -6,6 +6,8 @@ import android.content.Context;
 import cn.bmob.v3.Bmob;
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.listener.FindListener;
+import cn.bmob.v3.listener.SaveListener;
+import cn.bmob.v3.listener.UploadFileListener;
 
 public class NetworkManager {
 
@@ -39,9 +41,9 @@ public class NetworkManager {
 
 	public void queryAllPings(PingsHandler handler) {
 		final PingsHandler tempHandler = handler;
-    	BmobQuery<PingMessage> bmobQuery = new BmobQuery<PingMessage>();
-    	bmobQuery.findObjects(mContext, new FindListener<PingMessage>() {
-			
+		BmobQuery<PingMessage> bmobQuery = new BmobQuery<PingMessage>();
+		bmobQuery.findObjects(mContext, new FindListener<PingMessage>() {
+
 			@Override
 			public void onSuccess(List<PingMessage> pings) {
 				tempHandler.onSuccess(pings);
@@ -52,7 +54,25 @@ public class NetworkManager {
 				tempHandler.onError(code, msg);
 			}
 		});
-    }
+	}
+
+	public void publishPing(final SaveListener saveListener, final PingMessage message) {
+		message.getImage().upload(mContext, new UploadFileListener() {
+
+			@Override
+			public void onSuccess() {
+				message.save(mContext, saveListener);
+			}
+
+			@Override
+			public void onProgress(Integer arg0) {
+			}
+
+			@Override
+			public void onFailure(int arg0, String arg1) {
+			}
+		});
+	}
 
 	public interface PingsHandler {
 		public void onSuccess(List<PingMessage> pings);
