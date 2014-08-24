@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.pingnimei.NetworkManager.PingsHandler;
 import com.example.pingnimei.util.FileTool;
 
 public class Pingnimei extends Activity {
@@ -27,29 +28,38 @@ public class Pingnimei extends Activity {
 	private String mPhotoPath;
 	private Uri mUriPhoto;
 	
+	private ContentPagerAdapter mContentPagerAdapter;
+
+	PingsHandler mPingsHandler = new NetworkManager.PingsHandler() {
+
+		@Override
+		public void onSuccess(List<PingMessage> pings) {
+			mContentPagerAdapter.setPings(pings);
+			mContentPagerAdapter.notifyDataSetChanged();
+		}
+
+		@Override
+		public void onError(int code, String msg) {
+
+		}
+	};
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.pingnimei);
 
 		ViewPager pager = (ViewPager) findViewById(R.id.content_pager);
-		final ContentPagerAdapter adapter = new ContentPagerAdapter(this);
-		adapter.setViewPager(pager);
-		pager.setAdapter(adapter);
-		
-		NetworkManager.getInstance().queryAllPings(new NetworkManager.PingsHandler() {
+		mContentPagerAdapter = new ContentPagerAdapter(this);
+		mContentPagerAdapter.setViewPager(pager);
+		pager.setAdapter(mContentPagerAdapter);
+	}
 
-			@Override
-			public void onSuccess(List<PingMessage> pings) {
-				adapter.setPings(pings);
-				adapter.notifyDataSetChanged();
-			}
-			
-			@Override
-			public void onError(int code, String msg) {
-				
-			}
-		});
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		NetworkManager.getInstance().queryAllPings(mPingsHandler);
 	}
 
 	protected void getPhotoFromCamera() {
@@ -87,7 +97,7 @@ public class Pingnimei extends Activity {
 		} else if (requestCode == REQUEST_CODE_CAPTURE_CAMEIA && resultCode == RESULT_OK) {
 			intent.putExtra(TAG_PHOTO_PATH, mPhotoPath);
 			startActivity(intent);
-		} 
+		}
 	}
 
 	@Override
