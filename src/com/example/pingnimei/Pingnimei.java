@@ -33,7 +33,8 @@ public class Pingnimei extends Activity {
 		setContentView(R.layout.pingnimei);
 
 		ViewPager pager = (ViewPager) findViewById(R.id.content_pager);
-		final ContentPagerAdapter adapter = new ContentPagerAdapter();
+		final ContentPagerAdapter adapter = new ContentPagerAdapter(this);
+		adapter.setViewPager(pager);
 		pager.setAdapter(adapter);
 		
 		NetworkManager.getInstance().queryAllPings(new NetworkManager.PingsHandler() {
@@ -41,6 +42,7 @@ public class Pingnimei extends Activity {
 			@Override
 			public void onSuccess(List<PingMessage> pings) {
 				adapter.setPings(pings);
+				adapter.notifyDataSetChanged();
 			}
 			
 			@Override

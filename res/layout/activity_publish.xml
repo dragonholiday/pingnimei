@@ -13,8 +13,8 @@
 
     <ImageView
         android:id="@+id/iv_photo"
-        android:layout_width="@dimen/publish_image_size"
-        android:layout_height="@dimen/publish_image_size"
+        android:layout_width="@dimen/preview_image_size"
+        android:layout_height="@dimen/preview_image_size"
         android:layout_marginLeft="@dimen/publish_photo_margin"
         android:scaleType="centerCrop"
         android:layout_marginTop="@dimen/activity_vertical_margin"/>
