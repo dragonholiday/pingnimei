@@ -1,4 +1,8 @@
+
 package com.example.pingnimei;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
 
 import java.io.File;
 
@@ -19,111 +23,135 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
 import cn.bmob.v3.datatype.BmobFile;
 import cn.bmob.v3.datatype.BmobGeoPoint;
 import cn.bmob.v3.listener.SaveListener;
 
 public class PingPublishActivity extends Activity {
 
-	private ImageView mIvPhoto;
-	private EditText mEtDes;
-	private EditText mEtTag;
+    private ImageView mIvPhoto;
 
-	private String mPhotoPath;
+    private EditText mEtDes;
 
-	private ProgressDialog progressDialog;
+    private EditText mEtTag;
 
-	private double latitude = 0.0;
-	private double longitude = 0.0;
+    private String mPhotoPath;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_publish);
+    private ProgressDialog progressDialog;
 
-		mIvPhoto = (ImageView) findViewById(R.id.iv_photo);
-		mEtDes = (EditText) findViewById(R.id.et_des);
-		mEtTag = (EditText) findViewById(R.id.et_tag);
+    private double latitude = 0.0;
 
-		mPhotoPath = getIntent().getStringExtra(Pingnimei.TAG_PHOTO_PATH);
-		Bitmap bitmap = BitmapFactory.decodeFile(mPhotoPath, null);
-		mIvPhoto.setImageBitmap(bitmap);
+    private double longitude = 0.0;
 
-		mIvPhoto.setOnClickListener(photoClickListener);
+    private LocationAction baiduLocation;
 
-		initLocation();
-	}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_publish);
 
-	private void initLocation() {
-		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mIvPhoto = (ImageView)findViewById(R.id.iv_photo);
+        mEtDes = (EditText)findViewById(R.id.et_des);
+        mEtTag = (EditText)findViewById(R.id.et_tag);
 
-		Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        mPhotoPath = getIntent().getStringExtra(Pingnimei.TAG_PHOTO_PATH);
+        Bitmap bitmap = BitmapFactory.decodeFile(mPhotoPath, null);
+        mIvPhoto.setImageBitmap(bitmap);
 
-		if (location != null) {
-			latitude = location.getLatitude();
-			longitude = location.getLongitude();
-		}
-	}
+        mIvPhoto.setOnClickListener(photoClickListener);
+        
+        baiduLocation = new LocationAction(this, MyBDLocationListener);
+        baiduLocation.startLocation();
 
-	private OnClickListener photoClickListener = new OnClickListener() {
+        //initLocation();
+    }
 
-		@Override
-		public void onClick(View v) {
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setDataAndType(Uri.parse("file://" + mPhotoPath), "image/*");
-			startActivity(intent);
-		}
-	};
+    private void initLocation() {
+        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.menu_publish, menu);
-		return true;
-	}
+        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.menu_publish: {
-				progressDialog = new ProgressDialog(PingPublishActivity.this);
+        if (location != null) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+        }
+    }
 
-				progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				progressDialog.setMessage("发布中...");
+    private BDLocationListener MyBDLocationListener = new BDLocationListener() {
 
-				progressDialog.setCanceledOnTouchOutside(false);
-				progressDialog.show();
+        @Override
+        public void onReceiveLocation(BDLocation location) {
+            if (location.getLocType() == BDLocation.TypeNetWorkLocation) {
+                longitude = location.getLongitude();
+                latitude = location.getAltitude();
+                mEtTag.setText(location.getAddrStr());
+                baiduLocation.stopLocation();
+            } else {
+                mEtTag.setText("获取地理信息失败，正在重试");
+            }
+        }
+    };
 
-				publish();
-			}
-			default: {
-				break;
-			}
-		}
-		return super.onOptionsItemSelected(item);
-	}
+    private OnClickListener photoClickListener = new OnClickListener() {
 
-	private void publish() {
-		PingMessage message = new PingMessage();
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.parse("file://" + mPhotoPath), "image/*");
+            startActivity(intent);
+        }
+    };
 
-		message.setImage(new BmobFile(new File(mPhotoPath)));
-		message.setImageDesribe(mEtDes.getText().toString());
-		message.setLocationDescribe(mEtTag.getText().toString());
-		message.setLocation(new BmobGeoPoint(longitude, latitude));
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_publish, menu);
+        return true;
+    }
 
-		NetworkManager.getInstance(this).publishPing(new SaveListener() {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_publish: {
+                progressDialog = new ProgressDialog(PingPublishActivity.this);
 
-			@Override
-			public void onSuccess() {
-				progressDialog.cancel();
-				PingPublishActivity.this.finish();
-				Toast.makeText(PingPublishActivity.this, "发布成功^_^", Toast.LENGTH_LONG).show();
-			}
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog.setMessage("发布中...");
 
-			@Override
-			public void onFailure(int arg0, String arg1) {
-				progressDialog.cancel();
-				Toast.makeText(PingPublishActivity.this, "发布失败~_~", Toast.LENGTH_LONG).show();
-			}
-		}, message);
-	}
+                progressDialog.setCanceledOnTouchOutside(false);
+                progressDialog.show();
+
+                publish();
+            }
+            default: {
+                break;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void publish() {
+        PingMessage message = new PingMessage();
+
+        message.setImage(new BmobFile(new File(mPhotoPath)));
+        message.setImageDesribe(mEtDes.getText().toString());
+        message.setLocationDescribe(mEtTag.getText().toString());
+        message.setLocation(new BmobGeoPoint(longitude, latitude));
+
+        NetworkManager.getInstance(this).publishPing(new SaveListener() {
+
+            @Override
+            public void onSuccess() {
+                progressDialog.cancel();
+                PingPublishActivity.this.finish();
+                Toast.makeText(PingPublishActivity.this, "发布成功^_^", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(int arg0, String arg1) {
+                progressDialog.cancel();
+                Toast.makeText(PingPublishActivity.this, "发布失败~_~", Toast.LENGTH_LONG).show();
+            }
+        }, message);
+    }
 }
