@@ -59,6 +59,7 @@ public class Pingnimei extends Activity {
 	protected void onResume() {
 		super.onResume();
 
+        LocationAction.getInstance().startLocation();
 		NetworkManager.getInstance().queryAllPings(mPingsHandler);
 	}
 

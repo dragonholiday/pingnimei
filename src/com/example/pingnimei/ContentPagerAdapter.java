@@ -1,8 +1,10 @@
 package com.example.pingnimei;
 
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -17,6 +19,7 @@ public class ContentPagerAdapter extends PagerAdapter {
 	private Context mContext;
 	private LayoutInflater mInflater;
 	private ViewPager mViewPager;
+    private ArrayMap<Integer, SinglePingView> mViews = new ArrayMap<Integer, SinglePingView>();
 
 	public ContentPagerAdapter(Context context) {
 		mContext = context;
@@ -38,20 +41,16 @@ public class ContentPagerAdapter extends PagerAdapter {
 
 	@Override
 	public Object instantiateItem(ViewGroup container, int position) {
-		View page = mInflater.inflate(R.layout.single_ping_view, mViewPager, false);
+        SinglePingView page = mViews.get(position);
+        if (page == null) {
+            page = (SinglePingView) mInflater.inflate(R.layout.single_ping_view, mViewPager, false);
+            container.addView(page);
+            mViews.put(position, page);
+        }
+
 		PingMessage pingMsg = mPings.get(position);
+		page.updateView(pingMsg);
 
-		TextView text = (TextView) page.findViewById(R.id.text);
-		text.setText(pingMsg.getImageDesribe());
-
-		int imageSize = (int) mContext.getResources().getDimension(R.dimen.preview_image_size);
-		ImageView imageView = (ImageView) page.findViewById(R.id.image);
-		pingMsg.getImage().loadImageThumbnail(mContext, imageView, imageSize, imageSize);
-
-		TextView locationDesc = (TextView) page.findViewById(R.id.location_decription);
-		locationDesc.setText(pingMsg.getLocationDescribe());
-
-		container.addView(page);
 		return page;
 	}
 

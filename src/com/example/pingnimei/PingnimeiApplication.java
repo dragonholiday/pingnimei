@@ -9,6 +9,7 @@ public class PingnimeiApplication extends Application {
 		super.onCreate();
 
 		NetworkManager.getInstance(this);
+        LocationAction.getInstance(this);
 	}
 
 }

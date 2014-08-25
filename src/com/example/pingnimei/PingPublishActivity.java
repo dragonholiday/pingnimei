@@ -61,8 +61,7 @@ public class PingPublishActivity extends Activity {
 
         mIvPhoto.setOnClickListener(photoClickListener);
         
-        baiduLocation = new LocationAction(this, MyBDLocationListener);
-        baiduLocation.startLocation();
+        LocationAction.getInstance().startLocation();//更新位置
 
         //initLocation();
     }
@@ -136,6 +135,17 @@ public class PingPublishActivity extends Activity {
         message.setImage(new BmobFile(new File(mPhotoPath)));
         message.setImageDesribe(mEtDes.getText().toString());
         message.setLocationDescribe(mEtTag.getText().toString());
+
+        BDLocation location = LocationAction.getInstance().getLocation();
+        if (location != null
+                && (location.getLocType() == BDLocation.TypeGpsLocation
+                        || location.getLocType() == BDLocation.TypeNetWorkLocation
+                        || location.getLocType() == BDLocation.TypeOffLineLocation)) {
+            longitude = location.getLongitude();
+            latitude = location.getLatitude();
+        } else {
+            longitude = latitude = 0;
+        }
         message.setLocation(new BmobGeoPoint(longitude, latitude));
 
         NetworkManager.getInstance(this).publishPing(new SaveListener() {
